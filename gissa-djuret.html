@@ -270,16 +270,17 @@ async function callGemini(systemPrompt, conv) {
 }
 const GAME_SYS = (a) => `You are hosting a yes/no animal guessing game. The secret animal is: "${a}".
 
-CRITICAL RULES — follow these exactly every single time:
-1. You must ALWAYS be factually consistent. Think carefully about the true facts of "${a}" before answering.
-2. For yes/no questions: reply with "✅ Ja!" or "❌ Nej." followed by one short sentence in Swedish.
-3. If the player guesses the WRONG animal: reply "❌ Nej, det är inte rätt. Försök igen!"
-4. If the player guesses the CORRECT animal (matches "${a}" exactly or is a correct Swedish translation): reply "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
-5. NEVER reveal the animal name unless the player guesses it correctly.
-6. NEVER contradict yourself. If you said yes to eating meat, you must agree it is a predator or carnivore if asked.
-7. Always answer in Swedish.
+CRITICAL RULES — never break these:
+1. NEVER say the animal's name or any word that reveals what it is. Never say "the fish", "the bird", "the mammal" etc. Say "djuret" (the animal) instead.
+2. Be factually correct. Think carefully before answering.
+3. Swedish word "ben" can mean BOTH "leg" (limb) and "bone" (skeleton part). Always interpret from context: "Har djuret fler än 4 ben?" = asking about LEGS/LIMBS. "Har djuret ben i kroppen?" = asking about BONES. Answer accordingly.
+4. For yes/no questions: reply "✅ Ja!" or "❌ Nej." + one short sentence in Swedish. Never name the animal.
+5. NEVER contradict a previous answer. Stay consistent throughout the game.
+6. Wrong guess: "❌ Nej, det är inte rätt. Försök igen!"
+7. Correct guess (matches "${a}" or correct Swedish translation): "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
+8. Always answer in Swedish.
 
-Think step by step before answering: What is the factual answer for "${a}"? Then format your response.`;
+Before answering, think: (1) What does the question actually ask? (2) What is the true fact about "${a}"? (3) Can I answer without naming the animal?`;
 
 const HINT_SYS = (a, n) => `Du är spelvärd för ett djurgissningsspel. Djuret är "${a}". Ge ledtråd nummer ${n} på svenska.
 ${n===1?'Berätta om var djuret bor eller dess storlek.':n===2?'Berätta om vad djuret äter eller hur det beter sig.':'Ge en specifik, tydlig ledtråd om djurets utseende eller ett unikt kännetecken.'}
@@ -576,16 +577,17 @@ async function callGemini(systemPrompt, conv) {
 
 const GAME_SYS = (a) => `You are hosting a yes/no animal guessing game. The secret animal is: "${a}".
 
-CRITICAL RULES — follow these exactly every single time:
-1. You must ALWAYS be factually consistent. Think carefully about the true facts of "${a}" before answering.
-2. For yes/no questions: reply with "✅ Ja!" or "❌ Nej." followed by one short sentence in Swedish.
-3. If the player guesses the WRONG animal: reply "❌ Nej, det är inte rätt. Försök igen!"
-4. If the player guesses the CORRECT animal (matches "${a}" exactly or is a correct Swedish translation): reply "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
-5. NEVER reveal the animal name unless the player guesses it correctly.
-6. NEVER contradict yourself. If you said yes to eating meat, you must agree it is a predator or carnivore if asked.
-7. Always answer in Swedish.
+CRITICAL RULES — never break these:
+1. NEVER say the animal's name or any word that reveals what it is. Never say "the fish", "the bird", "the mammal" etc. Say "djuret" (the animal) instead.
+2. Be factually correct. Think carefully before answering.
+3. Swedish word "ben" can mean BOTH "leg" (limb) and "bone" (skeleton part). Always interpret from context: "Har djuret fler än 4 ben?" = asking about LEGS/LIMBS. "Har djuret ben i kroppen?" = asking about BONES. Answer accordingly.
+4. For yes/no questions: reply "✅ Ja!" or "❌ Nej." + one short sentence in Swedish. Never name the animal.
+5. NEVER contradict a previous answer. Stay consistent throughout the game.
+6. Wrong guess: "❌ Nej, det är inte rätt. Försök igen!"
+7. Correct guess (matches "${a}" or correct Swedish translation): "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
+8. Always answer in Swedish.
 
-Think step by step before answering: What is the factual answer for "${a}"? Then format your response.`;
+Before answering, think: (1) What does the question actually ask? (2) What is the true fact about "${a}"? (3) Can I answer without naming the animal?`;
 
 const HINT_SYS = (a, n) => `Du är spelvärd för ett djurgissningsspel. Djuret är "${a}". Ge ledtråd nummer ${n} på svenska.
 ${n===1?'Berätta om var djuret bor eller dess storlek.':n===2?'Berätta om vad djuret äter eller hur det beter sig.':'Ge en specifik, tydlig ledtråd om djurets utseende eller ett unikt kännetecken.'}
