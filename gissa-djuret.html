@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Gissa Djuret 🐾</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #071a07; color: #e8f5e8; font-family: 'Baloo 2', 'Nunito', cursive; overflow: hidden; }
+
+  #bg { position: fixed; inset: 0; z-index: 0; background: linear-gradient(160deg,#071a07 0%,#0d2410 40%,#060e1a 100%); pointer-events: none; }
+  .star { position: absolute; border-radius: 50%; background: white; }
+
+  .screen { position: fixed; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .screen.hidden { display: none; }
+
+  /* ── API KEY ── */
+  #screen-apikey { justify-content: center; padding: 2rem 1.5rem; gap: 1rem; }
+  .apikey-logo { font-size: 3.5rem; filter: drop-shadow(0 0 20px rgba(74,222,128,0.6)); }
+  .apikey-title { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg,#4ade80,#86efac,#fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+  .apikey-desc { color: #6a8a6a; font-size: 0.98rem; text-align: center; line-height: 1.7; max-width: 320px; }
+  .apikey-desc a { color: #4ade80; }
+  .apikey-steps { background: rgba(74,222,128,0.07); border: 1px solid rgba(74,222,128,0.2); border-radius: 14px; padding: 1rem 1.2rem; max-width: 360px; width: 100%; }
+  .apikey-steps p { font-size: 0.9rem; color: #86efac; line-height: 1.9; }
+  .apikey-steps strong { color: #4ade80; }
+  .apikey-input { width: 100%; max-width: 360px; height: 54px; border-radius: 14px; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); color: #e8f5e8; font-size: 1rem; padding: 0 1rem; outline: none; font-family: 'Nunito', sans-serif; }
+  .apikey-btn { width: 100%; max-width: 360px; height: 54px; border-radius: 14px; background: linear-gradient(135deg,#166534,#15803d); border: none; color: #e8f5e8; font-size: 1.1rem; font-weight: 800; cursor: pointer; font-family: 'Baloo 2', cursive; }
+  .apikey-error { color: #fca5a5; font-size: 0.9rem; text-align: center; max-width: 320px; }
+  .free-badge { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); border-radius: 20px; padding: 0.3rem 0.9rem; font-size: 0.85rem; color: #4ade80; font-weight: 700; }
+
+  /* ── MENU ── */
+  #screen-menu { justify-content: center; padding: 2rem 1.2rem; gap: 0.6rem; }
+  .menu-logo { font-size: 4rem; filter: drop-shadow(0 0 24px rgba(74,222,128,0.7)); }
+  .menu-title { font-size: clamp(2rem,8vw,3rem); font-weight: 800; background: linear-gradient(135deg,#4ade80,#86efac,#fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .menu-sub { color: #6a8a6a; font-size: 1rem; margin-bottom: 0.75rem; }
+  .level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; width: 100%; max-width: 480px; }
+  .level-card { background: rgba(255,255,255,0.05); border: 2px solid; border-radius: 18px; padding: 1.4rem 0.75rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.35rem; align-items: center; color: #e8f5e8; backdrop-filter: blur(8px); transition: transform 0.1s; }
+  .level-card:active { transform: scale(0.96); }
+  .level-emoji { font-size: 2.2rem; }
+  .level-name { font-weight: 800; font-size: 1.25rem; }
+  .level-desc { font-size: 0.82rem; color: #6a8a6a; text-align: center; line-height: 1.4; }
+  .change-key { color: #4a6a4a; font-size: 0.82rem; cursor: pointer; text-decoration: underline; margin-top: 0.5rem; }
+
+  /* ── LOADING ── */
+  #screen-loading { justify-content: center; align-items: center; gap: 1rem; }
+  .loading-brain { font-size: 4.5rem; animation: spin 1.5s linear infinite; }
+  .loading-text { color: #6a8a6a; font-size: 1.15rem; }
+
+  /* ── GAME ── */
+  #screen-game { justify-content: flex-start; }
+  .game-header { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1rem 0.5rem; gap: 0.5rem; flex-shrink: 0; }
+  .back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #86a086; border-radius: 20px; padding: 0.4rem 0.9rem; cursor: pointer; font-size: 0.92rem; font-family: 'Baloo 2', cursive; white-space: nowrap; }
+  .diff-badge { font-size: 0.9rem; font-weight: 700; white-space: nowrap; }
+  .hint-btn { background: rgba(250,204,21,0.12); border: 1px solid rgba(250,204,21,0.35); color: #facc15; border-radius: 20px; padding: 0.4rem 0.9rem; cursor: pointer; font-size: 0.9rem; font-family: 'Baloo 2', cursive; white-space: nowrap; transition: opacity 0.2s; }
+  .hint-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .hint-box { width: 100%; max-width: 600px; padding: 0.25rem 1rem 0; display: flex; flex-direction: column; gap: 0.45rem; flex-shrink: 0; }
+  .hint-row { background: rgba(250,204,21,0.08); border: 1px solid rgba(250,204,21,0.22); border-radius: 12px; padding: 0.6rem 1rem; font-size: 0.98rem; color: #fde68a; display: flex; gap: 0.6rem; align-items: flex-start; animation: fadeUp 0.3s ease; }
+  .hint-num { font-weight: 800; color: #facc15; flex-shrink: 0; }
+
+  .chat { flex: 1; width: 100%; max-width: 600px; padding: 0.75rem 1rem; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 0.8rem; }
+  .empty-state { text-align: center; padding: 2rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+  .empty-icon { font-size: 3rem; }
+  .empty-title { font-weight: 800; font-size: 1.15rem; color: #86efac; }
+  .empty-sub { color: #6a8a6a; font-size: 0.98rem; }
+  .empty-example { color: #4a6a4a; font-size: 0.88rem; font-style: italic; margin-top: 0.25rem; }
+
+  .bubble { max-width: 85%; animation: fadeUp 0.2s ease; }
+  .bubble-user { align-self: flex-end; background: linear-gradient(135deg,#1a4a1a,#0f2e0f); border: 1px solid rgba(74,222,128,0.25); border-radius: 18px 18px 4px 18px; padding: 0.75rem 1.1rem; }
+  .bubble-ai { align-self: flex-start; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px 18px 18px 4px; padding: 0.75rem 1.1rem; color: #d4f0d4; }
+  .bubble-label { font-size: 0.73rem; font-weight: 700; margin-bottom: 0.3rem; opacity: 0.75; }
+  .label-user { color: #4ade80; }
+  .label-ai { color: #86efac; }
+  .bubble-text { font-size: 1.05rem; line-height: 1.6; font-family: 'Nunito', sans-serif; }
+
+  .thinking-dots { display: flex; gap: 6px; align-items: center; padding: 4px 0; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; background: #4ade80; }
+  .dot:nth-child(1){animation:waveDot 0.8s ease 0s infinite}
+  .dot:nth-child(2){animation:waveDot 0.8s ease 0.15s infinite}
+  .dot:nth-child(3){animation:waveDot 0.8s ease 0.3s infinite}
+
+  .input-area { flex-shrink: 0; width: 100%; display: flex; flex-direction: column; align-items: center; padding: 0.65rem 1rem env(safe-area-inset-bottom, 0.75rem); background: linear-gradient(to top,rgba(7,26,7,0.98) 70%,transparent); gap: 0.5rem; }
+  .mic-error { font-size: 0.88rem; color: #fca5a5; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 0.4rem 1rem; text-align: center; width: 100%; max-width: 580px; }
+  .input-row { display: flex; gap: 0.6rem; align-items: center; width: 100%; max-width: 580px; }
+  .mic-btn { flex-shrink: 0; width: 60px; height: 60px; border-radius: 50%; font-size: 1.7rem; background: linear-gradient(135deg,#166534,#15803d); border: 2px solid rgba(74,222,128,0.5); cursor: pointer; animation: micPulse 2.2s ease infinite; display: flex; align-items: center; justify-content: center; }
+  .mic-btn:disabled { opacity: 0.4; animation: none; }
+  .text-input { flex: 1; height: 60px; border-radius: 30px; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); color: #e8f5e8; font-size: 1.05rem; padding: 0 1.2rem; outline: none; font-family: 'Nunito', sans-serif; -webkit-appearance: none; }
+  .text-input::placeholder { color: #4a6a4a; }
+  .text-input:disabled { opacity: 0.5; }
+  .send-btn { flex-shrink: 0; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg,#166534,#15803d); border: none; color: #e8f5e8; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; }
+  .send-btn:disabled { opacity: 0.3; }
+
+  .listening-row { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; width: 100%; max-width: 580px; }
+  .wave-bars { display: flex; gap: 5px; align-items: center; height: 30px; }
+  .bar { width: 5px; border-radius: 4px; background: #4ade80; }
+  .bar:nth-child(1){animation:waveBar 0.6s ease 0.00s infinite}
+  .bar:nth-child(2){animation:waveBar 0.6s ease 0.08s infinite}
+  .bar:nth-child(3){animation:waveBar 0.6s ease 0.16s infinite}
+  .bar:nth-child(4){animation:waveBar 0.6s ease 0.24s infinite}
+  .bar:nth-child(5){animation:waveBar 0.6s ease 0.32s infinite}
+  .bar:nth-child(6){animation:waveBar 0.6s ease 0.40s infinite}
+  .live-text { font-size: 1rem; color: #86efac; font-style: italic; text-align: center; min-height: 1.4em; font-family: 'Nunito', sans-serif; }
+  .stop-btn { padding: 0.5rem 1.5rem; border-radius: 20px; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; cursor: pointer; font-size: 0.95rem; font-family: 'Baloo 2', cursive; }
+
+  /* ── WON ── */
+  #screen-won { justify-content: center; align-items: center; gap: 1rem; text-align: center; padding: 2rem; }
+  .won-emoji { font-size: 5rem; animation: bounce 0.6s ease infinite alternate; }
+  .won-title { font-size: 2.8rem; font-weight: 800; color: #4ade80; }
+  .won-sub { color: #86a086; font-size: 1.15rem; line-height: 1.8; }
+  .replay-btn { margin-top: 0.5rem; padding: 0.85rem 2.2rem; border-radius: 40px; background: linear-gradient(135deg,#4ade80,#22c55e); border: none; cursor: pointer; font-size: 1.1rem; font-weight: 800; color: #071a07; font-family: 'Baloo 2', cursive; }
+
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-14px)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes waveBar{0%,100%{height:5px}50%{height:26px}}
+  @keyframes waveDot{0%,100%{transform:scale(0.6);opacity:0.4}50%{transform:scale(1.2);opacity:1}}
+  @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.5)}50%{box-shadow:0 0 0 14px rgba(74,222,128,0)}}
+  ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#2d4a2d;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+
+<!-- API KEY SCREEN -->
+<div id="screen-apikey" class="screen">
+  <div class="apikey-logo">🐾</div>
+  <div class="apikey-title">Gissa Djuret</div>
+  <span class="free-badge">✨ Gratis att använda</span>
+  <div class="apikey-steps">
+    <p>
+      <strong>1.</strong> Gå till <a href="https://console.groq.com/keys" target="_blank" style="color:#4ade80">console.groq.com/keys</a><br>
+      <strong>2.</strong> Skapa konto (gratis) → "Create API Key"<br>
+      <strong>3.</strong> Kopiera och klistra in nedan
+    </p>
+  </div>
+  <input id="apikey-input" class="apikey-input" type="password" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+  <div id="apikey-error" class="apikey-error" style="display:none"></div>
+  <button class="apikey-btn" id="btn-start">Starta spelet ➤</button>
+</div>
+
+<!-- MENU SCREEN -->
+<div id="screen-menu" class="screen hidden">
+  <div class="menu-logo">🐾</div>
+  <h1 class="menu-title">Gissa Djuret</h1>
+  <p class="menu-sub">Välj svårighetsgrad</p>
+  <div class="level-grid" id="level-grid"></div>
+  <span class="change-key" id="btn-changekey">Byt API-nyckel</span>
+</div>
+
+<!-- LOADING SCREEN -->
+<div id="screen-loading" class="screen hidden">
+  <div class="loading-brain">🧠</div>
+  <p class="loading-text">Väljer ett hemligt djur…</p>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="screen-game" class="screen hidden">
+  <div class="game-header">
+    <button class="back-btn" id="btn-back">← Meny</button>
+    <span class="diff-badge" id="diff-badge"></span>
+    <button class="hint-btn" id="hint-btn" id="btn-hint">💡 3 kvar</button>
+  </div>
+  <div class="hint-box" id="hint-box"></div>
+  <div class="chat" id="chat"></div>
+  <div class="input-area">
+    <div id="mic-error" class="mic-error" style="display:none"></div>
+    <div class="input-row" id="input-row">
+      <button class="mic-btn" id="mic-btn" >🎤</button>
+      <input class="text-input" id="text-input" type="text" placeholder="Eller skriv en fråga…" >
+      <button class="send-btn" id="send-btn" >➤</button>
+    </div>
+    <div class="listening-row" id="listening-row" style="display:none">
+      <div class="wave-bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+      <div class="live-text" id="live-text">Lyssnar…</div>
+      <button class="stop-btn" id="btn-stop">⏹ Klar</button>
+    </div>
+  </div>
+</div>
+
+<!-- WON SCREEN -->
+<div id="screen-won" class="screen hidden">
+  <div class="won-emoji">🎉</div>
+  <h2 class="won-title">Rätt gissat!</h2>
+  <p class="won-sub" id="won-sub"></p>
+  <button class="replay-btn" id="btn-back">🔄 Spela igen</button>
+</div>
+
+<script>
+// ── State ──
+let apiKey = localStorage.getItem('gissa_groq_key') || '';
+let secretAnimal = '';
+let currentDiff = null;
+let conversation = [];   // [{role:'user'|'model', text:'...'}]
+let hintsUsed = 0;
+let questionCount = 0;
+let isThinking = false;
+let recognition = null;
+let isListening = false;
+
+const DIFFICULTIES = [
+  { id:1, name:'Lätt',   emoji:'🐱', color:'#4ade80', glow:'rgba(74,222,128,0.4)',  desc:'Husdjur & välkända djur',      prompt:'Pick a very common animal a Swedish child would know. Examples: dog, cat, horse, elephant, lion, fish, bird, rabbit, cow, pig, sheep, chicken, duck, frog, turtle. Respond with ONLY the animal name in English, lowercase, one word.' },
+  { id:2, name:'Medel',  emoji:'🦁', color:'#facc15', glow:'rgba(250,204,21,0.4)',  desc:'Vilda djur från hela världen',  prompt:'Pick a well-known wild animal. Examples: giraffe, zebra, wolf, bear, dolphin, eagle, crocodile, penguin, kangaroo, cheetah, gorilla, flamingo, jaguar, seal. Respond with ONLY the animal name in English, lowercase, one or two words.' },
+  { id:3, name:'Svår',   emoji:'🦜', color:'#f97316', glow:'rgba(249,115,22,0.4)',  desc:'Mer ovanliga djur',             prompt:'Pick a less common but real animal. Examples: okapi, tapir, meerkat, narwhal, axolotl, capybara, wolverine, pangolin, binturong, mandrill, cassowary, quokka. Respond with ONLY the animal name in English, lowercase, one or two words.' },
+  { id:4, name:'Expert', emoji:'🦕', color:'#c084fc', glow:'rgba(192,132,252,0.4)', desc:'Sällsynta & exotiska djur',     prompt:'Pick a rare or exotic animal most people don\'t know. Examples: aye-aye, saiga antelope, solenodon, kakapo, glass frog, shoebill, blobfish, dumbo octopus, tarsier, kinkajou. Respond with ONLY the animal name in English, lowercase, one to three words.' },
+];
+
+// ── Stars ──
+(function() {
+  const bg = document.getElementById('bg');
+  for (let i = 0; i < 40; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 1;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*60}%;opacity:${Math.random()*0.45+0.1}`;
+    bg.appendChild(s);
+  }
+})();
+
+// ── Screen ──
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById('screen-' + id).classList.remove('hidden');
+}
+
+// ── API Key ──
+function saveApiKey() {
+  const val = document.getElementById('apikey-input').value.trim();
+  if (val.length < 10) {
+    showApiError('Nyckeln verkar för kort. Klistra in hela nyckeln från Google AI Studio.');
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem('gissa_groq_key', apiKey);
+  initMenu();
+}
+
+function changeKey() {
+  localStorage.removeItem('gissa_groq_key');
+  apiKey = '';
+  document.getElementById('apikey-input').value = '';
+  document.getElementById('apikey-error').style.display = 'none';
+  show('apikey');
+}
+
+function showApiError(msg) {
+  const el = document.getElementById('apikey-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ── Groq API (gratis, fungerar globalt) ──
+async function callGemini(systemPrompt, conv) {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...conv.map(m => ({ role: m.role === 'model' ? 'assistant' : m.role, content: m.text }))
+  ];
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+    body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: 300, temperature: 0.7 })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+  return data.choices[0].message.content.trim();
+}
+const GAME_SYS = (a) => `Du är spelvärd för ett djurgissningsspel på svenska. Det hemliga djuret är: "${a}".
+Regler:
+- Svara BARA på svenska.
+- Vid ja/nej-frågor: svara "✅ Ja!" eller "❌ Nej." + kort kommentar (max 1 mening).
+- Om spelaren gissar fel djur: svara "❌ Nej, det är inte rätt. Försök igen!"
+- Om spelaren gissar rätt (matchar "${a}" eller korrekt svensk översättning): svara "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
+- Avslöja ALDRIG djuret om spelaren inte gissar rätt.`;
+
+const HINT_SYS = (a, n) => `Du är spelvärd för ett djurgissningsspel. Djuret är "${a}". Ge ledtråd nummer ${n} på svenska.
+${n===1?'Berätta om var djuret bor eller dess storlek.':n===2?'Berätta om vad djuret äter eller hur det beter sig.':'Ge en specifik, tydlig ledtråd om djurets utseende eller ett unikt kännetecken.'}
+Svara med BARA ledtråden, en mening, på svenska. Avslöja inte djurets namn.`;
+
+// ── Start game ──
+function initMenu() {
+  const grid = document.getElementById('level-grid');
+  grid.innerHTML = '';
+  DIFFICULTIES.forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = 'level-card';
+    btn.style.borderColor = d.color;
+    btn.style.boxShadow = `0 0 24px ${d.glow}`;
+    btn.innerHTML = `<span class="level-emoji">${d.emoji}</span><span class="level-name" style="color:${d.color}">${d.name}</span><span class="level-desc">${d.desc}</span>`;
+    btn.onclick = () => startGame(d);
+    grid.appendChild(btn);
+  });
+  show('menu');
+}
+
+async function startGame(diff) {
+  currentDiff = diff;
+  conversation = [];
+  hintsUsed = 0;
+  questionCount = 0;
+  secretAnimal = '';
+  show('loading');
+  try {
+    const animal = await callGemini(diff.prompt, [{ role:'user', text:'Pick the secret animal now.' }]);
+    secretAnimal = animal.toLowerCase().replace(/[^a-z\s-]/g,'').trim();
+    setupGameScreen();
+    show('game');
+  } catch(e) {
+    alert('Kunde inte starta spelet: ' + e.message);
+    show('menu');
+  }
+}
+
+function setupGameScreen() {
+  document.getElementById('diff-badge').textContent = currentDiff.emoji + ' ' + currentDiff.name + ' · ❓0';
+  document.getElementById('diff-badge').style.color = currentDiff.color;
+  document.getElementById('hint-box').innerHTML = '';
+  document.getElementById('chat').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">🎙️</div>
+      <div class="empty-title">Jag tänker på ett djur!</div>
+      <div class="empty-sub">Tryck på 🎤 och fråga, eller skriv nedan</div>
+      <div class="empty-example">"Lever djuret i vatten?" · "Är det ett husdjur?"</div>
+    </div>`;
+  updateHintBtn();
+  setInputEnabled(true);
+  document.getElementById('mic-error').style.display = 'none';
+}
+
+function goMenu() { stopMic(); initMenu(); }
+
+// ── Chat ──
+function clearEmptyState() {
+  const e = document.getElementById('chat').querySelector('.empty-state');
+  if (e) e.remove();
+}
+
+function addBubble(role, text) {
+  clearEmptyState();
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble ' + (role === 'user' ? 'bubble-user' : 'bubble-ai');
+  const label = document.createElement('div');
+  label.className = 'bubble-label ' + (role === 'user' ? 'label-user' : 'label-ai');
+  label.textContent = role === 'user' ? 'Du' : '🐾 Spelet';
+  const txt = document.createElement('div');
+  txt.className = 'bubble-text';
+  txt.textContent = text;
+  wrap.appendChild(label);
+  wrap.appendChild(txt);
+  document.getElementById('chat').appendChild(wrap);
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return wrap;
+}
+
+function addThinking() {
+  clearEmptyState();
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble bubble-ai';
+  wrap.id = 'thinking-bubble';
+  wrap.innerHTML = '<div class="bubble-label label-ai">🐾 Spelet</div><div class="thinking-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  document.getElementById('chat').appendChild(wrap);
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function removeThinking() {
+  const t = document.getElementById('thinking-bubble');
+  if (t) t.remove();
+}
+
+// ── Submit ──
+async function submitQuestion(question) {
+  const q = question.trim();
+  if (!q || isThinking) return;
+  setInputEnabled(false);
+  isThinking = true;
+  questionCount++;
+  document.getElementById('diff-badge').textContent = currentDiff.emoji + ' ' + currentDiff.name + ' · ❓' + questionCount;
+
+  addBubble('user', q);
+  conversation.push({ role: 'user', text: q });
+  addThinking();
+
+  try {
+    const answer = await callGemini(GAME_SYS(secretAnimal), conversation);
+    removeThinking();
+    addBubble('model', answer);
+    conversation.push({ role: 'model', text: answer });
+
+    if (answer.includes('Du gissade rätt')) {
+      setTimeout(() => {
+        document.getElementById('won-sub').innerHTML = `Det tog dig <strong>${questionCount}</strong> frågor och <strong>${hintsUsed}</strong> ledtrådar`;
+        show('won');
+      }, 700);
+    }
+  } catch(e) {
+    removeThinking();
+    addBubble('model', 'Något gick fel — försök igen! (' + e.message + ')');
+  }
+
+  isThinking = false;
+  setInputEnabled(true);
+}
+
+function sendText() {
+  const input = document.getElementById('text-input');
+  const val = input.value;
+  input.value = '';
+  submitQuestion(val);
+}
+
+function setInputEnabled(enabled) {
+  document.getElementById('mic-btn').disabled = !enabled;
+  document.getElementById('text-input').disabled = !enabled;
+  document.getElementById('send-btn').disabled = !enabled;
+  document.getElementById('hint-btn').disabled = !enabled || hintsUsed >= 3;
+}
+
+// ── Hints ──
+function updateHintBtn() {
+  const btn = document.getElementById('hint-btn');
+  btn.textContent = '💡 ' + (3 - hintsUsed) + ' kvar';
+  btn.disabled = hintsUsed >= 3;
+}
+
+async function getHint() {
+  if (hintsUsed >= 3 || isThinking) return;
+  isThinking = true;
+  setInputEnabled(false);
+  const n = hintsUsed + 1;
+  try {
+    const hint = await callGemini(HINT_SYS(secretAnimal, n), [{ role:'user', text:`Give hint ${n}.` }]);
+    hintsUsed++;
+    updateHintBtn();
+    const row = document.createElement('div');
+    row.className = 'hint-row';
+    row.innerHTML = `<span class="hint-num">#${hintsUsed}</span><span>${hint}</span>`;
+    document.getElementById('hint-box').appendChild(row);
+  } catch {}
+  isThinking = false;
+  setInputEnabled(true);
+}
+
+// ── Microphone ──
+function toggleMic() {
+  if (isListening) { stopMic(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    const err = document.getElementById('mic-error');
+    err.textContent = '⚠️ Röstinmatning stöds inte i denna webbläsare. Använd Chrome.';
+    err.style.display = 'block';
+    return;
+  }
+
+  recognition = new SR();
+  recognition.lang = 'sv-SE';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+
+  let finalTranscript = '';
+
+  recognition.onstart = () => {
+    isListening = true;
+    finalTranscript = '';
+    document.getElementById('input-row').style.display = 'none';
+    document.getElementById('listening-row').style.display = 'flex';
+    document.getElementById('live-text').textContent = 'Lyssnar…';
+    document.getElementById('mic-error').style.display = 'none';
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+      else interim = e.results[i][0].transcript;
+    }
+    document.getElementById('live-text').textContent = finalTranscript + interim || 'Lyssnar…';
+  };
+
+  recognition.onerror = (e) => {
+    stopMic();
+    const err = document.getElementById('mic-error');
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      err.textContent = '⚠️ Mikrofon nekad — tillåt åtkomst i webbläsarens inställningar';
+    } else {
+      err.textContent = '⚠️ Mikrofon-fel: ' + e.error;
+    }
+    err.style.display = 'block';
+  };
+
+  recognition.onend = () => {
+    const q = finalTranscript.trim();
+    stopMic();
+    if (q) submitQuestion(q);
+  };
+
+  try { recognition.start(); }
+  catch(e) {
+    const err = document.getElementById('mic-error');
+    err.textContent = '⚠️ Kunde inte starta mikrofonen: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+
+function stopMic() {
+  isListening = false;
+  if (recognition) { try { recognition.stop(); } catch {} recognition = null; }
+  document.getElementById('input-row').style.display = 'flex';
+  document.getElementById('listening-row').style.display = 'none';
+}
+
+
+// ── Attach event listeners (works for local files on Android) ──
+document.addEventListener('DOMContentLoaded', function() {
+  var btnStart = document.getElementById('btn-start');
+  if (btnStart) btnStart.addEventListener('click', saveApiKey);
+
+  var btnChangeKey = document.getElementById('btn-changekey');
+  if (btnChangeKey) btnChangeKey.addEventListener('click', changeKey);
+
+  var btnBack = document.getElementById('btn-back');
+  if (btnBack) btnBack.addEventListener('click', goMenu);
+
+  var hintBtn = document.getElementById('hint-btn');
+  if (hintBtn) hintBtn.addEventListener('click', getHint);
+
+  var micBtn = document.getElementById('mic-btn');
+  if (micBtn) micBtn.addEventListener('click', toggleMic);
+
+  var sendBtn = document.getElementById('send-btn');
+  if (sendBtn) sendBtn.addEventListener('click', sendText);
+
+  var stopBtn = document.getElementById('btn-stop');
+  if (stopBtn) stopBtn.addEventListener('click', stopMic);
+
+  var textInput = document.getElementById('text-input');
+  if (textInput) textInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendText();
+  });
+});
+
+// ── Boot ──
+if (apiKey && apiKey.length > 10) {
+  initMenu();
+} else {
+  show('apikey');
+}
+</script>
+</body>
+</html>// Groq API — free tier, works globally
+async function callGemini(systemPrompt, conv) {
+  const url = 'https://api.groq.com/openai/v1/chat/completions';
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...conv.map(m => ({ role: m.role === 'model' ? 'assistant' : m.role, content: m.text }))
+  ];
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+    body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: 300, temperature: 0.7 })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.choices[0].message.content.trim();
+}
+
+
+const GAME_SYS = (a) => `Du är spelvärd för ett djurgissningsspel på svenska. Det hemliga djuret är: "${a}".
+Regler:
+- Svara BARA på svenska.
+- Vid ja/nej-frågor: svara "✅ Ja!" eller "❌ Nej." + kort kommentar (max 1 mening).
+- Om spelaren gissar fel djur: svara "❌ Nej, det är inte rätt. Försök igen!"
+- Om spelaren gissar rätt (matchar "${a}" eller korrekt svensk översättning): svara "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
+- Avslöja ALDRIG djuret om spelaren inte gissar rätt.`;
+
+const HINT_SYS = (a, n) => `Du är spelvärd för ett djurgissningsspel. Djuret är "${a}". Ge ledtråd nummer ${n} på svenska.
+${n===1?'Berätta om var djuret bor eller dess storlek.':n===2?'Berätta om vad djuret äter eller hur det beter sig.':'Ge en specifik, tydlig ledtråd om djurets utseende eller ett unikt kännetecken.'}
+Svara med BARA ledtråden, en mening, på svenska. Avslöja inte djurets namn.`;
+
+// ── Start game ──
+function initMenu() {
+  const grid = document.getElementById('level-grid');
+  grid.innerHTML = '';
+  DIFFICULTIES.forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = 'level-card';
+    btn.style.borderColor = d.color;
+    btn.style.boxShadow = `0 0 24px ${d.glow}`;
+    btn.innerHTML = `<span class="level-emoji">${d.emoji}</span><span class="level-name" style="color:${d.color}">${d.name}</span><span class="level-desc">${d.desc}</span>`;
+    btn.onclick = () => startGame(d);
+    grid.appendChild(btn);
+  });
+  show('menu');
+}
+
+async function startGame(diff) {
+  currentDiff = diff;
+  conversation = [];
+  hintsUsed = 0;
+  questionCount = 0;
+  secretAnimal = '';
+  show('loading');
+  try {
+    const animal = await callGemini(diff.prompt, [{ role:'user', text:'Pick the secret animal now.' }]);
+    secretAnimal = animal.toLowerCase().replace(/[^a-z\s-]/g,'').trim();
+    setupGameScreen();
+    show('game');
+  } catch(e) {
+    alert('Kunde inte starta spelet: ' + e.message);
+    show('menu');
+  }
+}
+
+function setupGameScreen() {
+  document.getElementById('diff-badge').textContent = currentDiff.emoji + ' ' + currentDiff.name + ' · ❓0';
+  document.getElementById('diff-badge').style.color = currentDiff.color;
+  document.getElementById('hint-box').innerHTML = '';
+  document.getElementById('chat').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">🎙️</div>
+      <div class="empty-title">Jag tänker på ett djur!</div>
+      <div class="empty-sub">Tryck på 🎤 och fråga, eller skriv nedan</div>
+      <div class="empty-example">"Lever djuret i vatten?" · "Är det ett husdjur?"</div>
+    </div>`;
+  updateHintBtn();
+  setInputEnabled(true);
+  document.getElementById('mic-error').style.display = 'none';
+}
+
+function goMenu() { stopMic(); initMenu(); }
+
+// ── Chat ──
+function clearEmptyState() {
+  const e = document.getElementById('chat').querySelector('.empty-state');
+  if (e) e.remove();
+}
+
+function addBubble(role, text) {
+  clearEmptyState();
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble ' + (role === 'user' ? 'bubble-user' : 'bubble-ai');
+  const label = document.createElement('div');
+  label.className = 'bubble-label ' + (role === 'user' ? 'label-user' : 'label-ai');
+  label.textContent = role === 'user' ? 'Du' : '🐾 Spelet';
+  const txt = document.createElement('div');
+  txt.className = 'bubble-text';
+  txt.textContent = text;
+  wrap.appendChild(label);
+  wrap.appendChild(txt);
+  document.getElementById('chat').appendChild(wrap);
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return wrap;
+}
+
+function addThinking() {
+  clearEmptyState();
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble bubble-ai';
+  wrap.id = 'thinking-bubble';
+  wrap.innerHTML = '<div class="bubble-label label-ai">🐾 Spelet</div><div class="thinking-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  document.getElementById('chat').appendChild(wrap);
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function removeThinking() {
+  const t = document.getElementById('thinking-bubble');
+  if (t) t.remove();
+}
+
+// ── Submit ──
+async function submitQuestion(question) {
+  const q = question.trim();
+  if (!q || isThinking) return;
+  setInputEnabled(false);
+  isThinking = true;
+  questionCount++;
+  document.getElementById('diff-badge').textContent = currentDiff.emoji + ' ' + currentDiff.name + ' · ❓' + questionCount;
+
+  addBubble('user', q);
+  conversation.push({ role: 'user', text: q });
+  addThinking();
+
+  try {
+    const answer = await callGemini(GAME_SYS(secretAnimal), conversation);
+    removeThinking();
+    addBubble('model', answer);
+    conversation.push({ role: 'model', text: answer });
+
+    if (answer.includes('Du gissade rätt')) {
+      setTimeout(() => {
+        document.getElementById('won-sub').innerHTML = `Det tog dig <strong>${questionCount}</strong> frågor och <strong>${hintsUsed}</strong> ledtrådar`;
+        show('won');
+      }, 700);
+    }
+  } catch(e) {
+    removeThinking();
+    addBubble('model', 'Något gick fel — försök igen! (' + e.message + ')');
+  }
+
+  isThinking = false;
+  setInputEnabled(true);
+}
+
+function sendText() {
+  const input = document.getElementById('text-input');
+  const val = input.value;
+  input.value = '';
+  submitQuestion(val);
+}
+
+function setInputEnabled(enabled) {
+  document.getElementById('mic-btn').disabled = !enabled;
+  document.getElementById('text-input').disabled = !enabled;
+  document.getElementById('send-btn').disabled = !enabled;
+  document.getElementById('hint-btn').disabled = !enabled || hintsUsed >= 3;
+}
+
+// ── Hints ──
+function updateHintBtn() {
+  const btn = document.getElementById('hint-btn');
+  btn.textContent = '💡 ' + (3 - hintsUsed) + ' kvar';
+  btn.disabled = hintsUsed >= 3;
+}
+
+async function getHint() {
+  if (hintsUsed >= 3 || isThinking) return;
+  isThinking = true;
+  setInputEnabled(false);
+  const n = hintsUsed + 1;
+  try {
+    const hint = await callGemini(HINT_SYS(secretAnimal, n), [{ role:'user', text:`Give hint ${n}.` }]);
+    hintsUsed++;
+    updateHintBtn();
+    const row = document.createElement('div');
+    row.className = 'hint-row';
+    row.innerHTML = `<span class="hint-num">#${hintsUsed}</span><span>${hint}</span>`;
+    document.getElementById('hint-box').appendChild(row);
+  } catch {}
+  isThinking = false;
+  setInputEnabled(true);
+}
+
+// ── Microphone ──
+function toggleMic() {
+  if (isListening) { stopMic(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    const err = document.getElementById('mic-error');
+    err.textContent = '⚠️ Röstinmatning stöds inte i denna webbläsare. Använd Chrome.';
+    err.style.display = 'block';
+    return;
+  }
+
+  recognition = new SR();
+  recognition.lang = 'sv-SE';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+
+  let finalTranscript = '';
+
+  recognition.onstart = () => {
+    isListening = true;
+    finalTranscript = '';
+    document.getElementById('input-row').style.display = 'none';
+    document.getElementById('listening-row').style.display = 'flex';
+    document.getElementById('live-text').textContent = 'Lyssnar…';
+    document.getElementById('mic-error').style.display = 'none';
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+      else interim = e.results[i][0].transcript;
+    }
+    document.getElementById('live-text').textContent = finalTranscript + interim || 'Lyssnar…';
+  };
+
+  recognition.onerror = (e) => {
+    stopMic();
+    const err = document.getElementById('mic-error');
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      err.textContent = '⚠️ Mikrofon nekad — tillåt åtkomst i webbläsarens inställningar';
+    } else {
+      err.textContent = '⚠️ Mikrofon-fel: ' + e.error;
+    }
+    err.style.display = 'block';
+  };
+
+  recognition.onend = () => {
+    const q = finalTranscript.trim();
+    stopMic();
+    if (q) submitQuestion(q);
+  };
+
+  try { recognition.start(); }
+  catch(e) {
+    const err = document.getElementById('mic-error');
+    err.textContent = '⚠️ Kunde inte starta mikrofonen: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+
+function stopMic() {
+  isListening = false;
+  if (recognition) { try { recognition.stop(); } catch {} recognition = null; }
+  document.getElementById('input-row').style.display = 'flex';
+  document.getElementById('listening-row').style.display = 'none';
+}
+
+
+// ── Attach event listeners (works for local files on Android) ──
+document.addEventListener('DOMContentLoaded', function() {
+  var btnStart = document.getElementById('btn-start');
+  if (btnStart) btnStart.addEventListener('click', saveApiKey);
+
+  var btnChangeKey = document.getElementById('btn-changekey');
+  if (btnChangeKey) btnChangeKey.addEventListener('click', changeKey);
+
+  var btnBack = document.getElementById('btn-back');
+  if (btnBack) btnBack.addEventListener('click', goMenu);
+
+  var hintBtn = document.getElementById('hint-btn');
+  if (hintBtn) hintBtn.addEventListener('click', getHint);
+
+  var micBtn = document.getElementById('mic-btn');
+  if (micBtn) micBtn.addEventListener('click', toggleMic);
+
+  var sendBtn = document.getElementById('send-btn');
+  if (sendBtn) sendBtn.addEventListener('click', sendText);
+
+  var stopBtn = document.getElementById('btn-stop');
+  if (stopBtn) stopBtn.addEventListener('click', stopMic);
+
+  var textInput = document.getElementById('text-input');
+  if (textInput) textInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendText();
+  });
+});
+
+// ── Boot ──
+if (apiKey && apiKey.length > 10) {
+  initMenu();
+} else {
+  show('apikey');
+}
+</script>
+</body>
+</html>
