@@ -262,19 +262,24 @@ async function callGemini(systemPrompt, conv) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-    body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: 300, temperature: 0.7 })
+    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens: 300, temperature: 0.7 })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
   return data.choices[0].message.content.trim();
 }
-const GAME_SYS = (a) => `Du är spelvärd för ett djurgissningsspel på svenska. Det hemliga djuret är: "${a}".
-Regler:
-- Svara BARA på svenska.
-- Vid ja/nej-frågor: svara "✅ Ja!" eller "❌ Nej." + kort kommentar (max 1 mening).
-- Om spelaren gissar fel djur: svara "❌ Nej, det är inte rätt. Försök igen!"
-- Om spelaren gissar rätt (matchar "${a}" eller korrekt svensk översättning): svara "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
-- Avslöja ALDRIG djuret om spelaren inte gissar rätt.`;
+const GAME_SYS = (a) => `You are hosting a yes/no animal guessing game. The secret animal is: "${a}".
+
+CRITICAL RULES — follow these exactly every single time:
+1. You must ALWAYS be factually consistent. Think carefully about the true facts of "${a}" before answering.
+2. For yes/no questions: reply with "✅ Ja!" or "❌ Nej." followed by one short sentence in Swedish.
+3. If the player guesses the WRONG animal: reply "❌ Nej, det är inte rätt. Försök igen!"
+4. If the player guesses the CORRECT animal (matches "${a}" exactly or is a correct Swedish translation): reply "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
+5. NEVER reveal the animal name unless the player guesses it correctly.
+6. NEVER contradict yourself. If you said yes to eating meat, you must agree it is a predator or carnivore if asked.
+7. Always answer in Swedish.
+
+Think step by step before answering: What is the factual answer for "${a}"? Then format your response.`;
 
 const HINT_SYS = (a, n) => `Du är spelvärd för ett djurgissningsspel. Djuret är "${a}". Ge ledtråd nummer ${n} på svenska.
 ${n===1?'Berätta om var djuret bor eller dess storlek.':n===2?'Berätta om vad djuret äter eller hur det beter sig.':'Ge en specifik, tydlig ledtråd om djurets utseende eller ett unikt kännetecken.'}
@@ -561,7 +566,7 @@ async function callGemini(systemPrompt, conv) {
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-    body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: 300, temperature: 0.7 })
+    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens: 300, temperature: 0.7 })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
@@ -569,13 +574,18 @@ async function callGemini(systemPrompt, conv) {
 }
 
 
-const GAME_SYS = (a) => `Du är spelvärd för ett djurgissningsspel på svenska. Det hemliga djuret är: "${a}".
-Regler:
-- Svara BARA på svenska.
-- Vid ja/nej-frågor: svara "✅ Ja!" eller "❌ Nej." + kort kommentar (max 1 mening).
-- Om spelaren gissar fel djur: svara "❌ Nej, det är inte rätt. Försök igen!"
-- Om spelaren gissar rätt (matchar "${a}" eller korrekt svensk översättning): svara "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
-- Avslöja ALDRIG djuret om spelaren inte gissar rätt.`;
+const GAME_SYS = (a) => `You are hosting a yes/no animal guessing game. The secret animal is: "${a}".
+
+CRITICAL RULES — follow these exactly every single time:
+1. You must ALWAYS be factually consistent. Think carefully about the true facts of "${a}" before answering.
+2. For yes/no questions: reply with "✅ Ja!" or "❌ Nej." followed by one short sentence in Swedish.
+3. If the player guesses the WRONG animal: reply "❌ Nej, det är inte rätt. Försök igen!"
+4. If the player guesses the CORRECT animal (matches "${a}" exactly or is a correct Swedish translation): reply "🎉 JA! Du gissade rätt! Det var en ${a}! Fantastiskt jobbat!"
+5. NEVER reveal the animal name unless the player guesses it correctly.
+6. NEVER contradict yourself. If you said yes to eating meat, you must agree it is a predator or carnivore if asked.
+7. Always answer in Swedish.
+
+Think step by step before answering: What is the factual answer for "${a}"? Then format your response.`;
 
 const HINT_SYS = (a, n) => `Du är spelvärd för ett djurgissningsspel. Djuret är "${a}". Ge ledtråd nummer ${n} på svenska.
 ${n===1?'Berätta om var djuret bor eller dess storlek.':n===2?'Berätta om vad djuret äter eller hur det beter sig.':'Ge en specifik, tydlig ledtråd om djurets utseende eller ett unikt kännetecken.'}
